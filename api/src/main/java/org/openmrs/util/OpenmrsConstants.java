@@ -48,6 +48,8 @@ public final class OpenmrsConstants {
 	
 	public static String KEY_OPENMRS_APPLICATION_DATA_DIRECTORY = "OPENMRS_APPLICATION_DATA_DIRECTORY";
 	
+	public static String KEY_OPENMRS_S3_BUCKET="openmrs_s3_data_directory";
+	
 	/**
 	 * This is the hard coded primary key of the concept class for DRUG. This has to be done because
 	 * some logic in the API acts on this concept class
@@ -171,6 +173,12 @@ public final class OpenmrsConstants {
 	 */
 	public static final String APPLICATION_DATA_DIRECTORY_RUNTIME_PROPERTY = "application_data_directory";
 	
+	/**
+	 * The name of the runtime property that a user can set that will specify the neame of 
+	 * the s3 bucket where the data is stored
+	 */
+	
+	public static final String S3_BUCKET_RUNTIME_PROPERTY = "s3.bucket";
 	/**
 	 * The name of the runtime property that a user can set that will specify whether the database
 	 * is automatically updated on startup

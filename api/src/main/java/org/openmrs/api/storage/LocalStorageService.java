@@ -37,6 +37,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Conditional;
+import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 
 /**
@@ -49,6 +50,7 @@ import org.springframework.stereotype.Service;
 @Service
 @Conditional(StorageServiceCondition.class)
 @Qualifier("local")
+@Primary
 public class LocalStorageService extends BaseStorageService implements StorageService {
 	
 	protected static final Logger log = LoggerFactory.getLogger(LocalStorageService.class);

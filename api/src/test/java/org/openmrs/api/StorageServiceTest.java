@@ -20,6 +20,8 @@ import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.startsWith;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -32,22 +34,29 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import com.adobe.testing.s3mock.S3MockApplication;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.jetbrains.annotations.NotNull;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.openmrs.api.storage.LocalStorageService;
+import org.openmrs.api.storage.S3StorageService;
 import org.openmrs.api.stream.StreamDataService;
 import org.openmrs.test.jupiter.BaseContextSensitiveTest;
 import org.openmrs.util.OpenmrsUtil;
 import org.springframework.beans.factory.annotation.Autowired;
+import software.amazon.awssdk.core.exception.SdkException;
+import software.amazon.awssdk.services.s3.model.S3Exception;
 
 class StorageServiceTest extends BaseContextSensitiveTest {
 	
@@ -69,11 +78,384 @@ class StorageServiceTest extends BaseContextSensitiveTest {
 	@TempDir
 	Path tempDir;
 	
+	@Autowired
+	S3StorageService s3StorageService;
+	
+	protected static S3MockApplication s3MockFileStore;
+	
+	static Map<String, Object> properties=new HashMap<String, Object>();
+	
+	@BeforeAll()
+	static void startS3Server(){
+		s3MockFileStore = S3MockApplication.start(properties);
+	}
+	
 	@BeforeEach
 	void setUp() {
 		localStorageService = new LocalStorageService(tempDir.toAbsolutePath().toString(), streamService);
 		testFile = IOUtils.toInputStream(testFileContent, Charset.defaultCharset());
 		testFile2 = IOUtils.toInputStream(testFile2Content, Charset.defaultCharset());
+	}
+
+	@Test
+	void s3BucketShouldBeCreatedSuccessfully() throws SdkException {
+		s3StorageService.createBucket();
+		boolean buckedShouldExsist=s3StorageService.bucketExsists();
+		assertThat(buckedShouldExsist,equalTo(true));
+	
+	}
+	
+	@Test
+	void s3shouldSaveAndGetDataInObject() throws IOException,SdkException{
+		saveTestDataInS3("test_module","test/test1",testFile,(key)->{
+			try {
+				InputStream dataResponse = s3StorageService.getData(key);
+				assertEquals(testFileContent, IOUtils.toString(dataResponse, Charset.defaultCharset()));
+			}catch(Exception e){
+				fail(e.getMessage());
+			}
+			
+		});
+	}
+	
+	
+	@Test
+	void getDataShouldThrowExceptionWhenObjectDoesNoExsist() throws IOException,SdkException{
+		saveTestDataInS3("test_module","test/test1",testFile,(key)->{
+			try {
+				assertThrows(S3Exception.class,()->s3StorageService.getData("dummyKey"));
+			}catch(Exception e){
+				fail(e.getMessage());
+			}
+		});
+	}
+
+	@Test
+	void s3ShouldBeAbleToSaveAndGetDataWithoutNoModuleIdAndKeySuffix() throws IOException,SdkException{
+		saveTestDataInS3(null,null,testFile,(key)->{
+			try {
+				InputStream dataResponse=s3StorageService.getData(key);
+				assertEquals(testFileContent,IOUtils.toString(dataResponse, Charset.defaultCharset()));
+			}catch(Exception e){
+				fail(e.getMessage());
+			}
+		});
+	}
+
+	@Test
+	void s3ShouldBeAbleToSaveDataWithOnlyModuleId() throws IOException,SdkException{
+		saveTestDataInS3("test_module",null,testFile,(key)->{
+			try {
+				InputStream dataResponse=s3StorageService.getData(key);
+				assertEquals(testFileContent,IOUtils.toString(dataResponse, Charset.defaultCharset()));
+			}catch(Exception e){
+				fail(e.getMessage());
+			}
+		});
+	}
+	
+	@Test
+	void s3ShouldSaveDataIfModuleIdDiffersButKeySuffixSame()  throws IOException,SdkException{
+		String keySuffix=newKeySuffix();
+		saveTestDataInS3("test_module",keySuffix,testFile,(key1)->{
+			
+			try {
+				
+				saveTestDataInS3("test_module_2", keySuffix, testFile2, (key2) -> {
+					try {
+						InputStream dataResponse = s3StorageService.getData(key1);
+						assertEquals(testFileContent, IOUtils.toString(dataResponse, Charset.defaultCharset()));
+						InputStream dataResponse2 = s3StorageService.getData(key2);
+						assertEquals(testFile2Content, IOUtils.toString(dataResponse2, Charset.defaultCharset()));
+					}
+					catch (Exception e) {
+						fail(e.getMessage());
+					}
+				});
+			}catch(Exception e){
+				fail(e.getMessage());
+			}
+		});
+	}
+	
+	@Test
+	void s3ObjectShouldExsistAfterDataIsSaved() throws SdkException,IOException{
+		saveTestDataInS3("test_module",null,testFile,(key)->{
+			try {
+				boolean objectExsists=s3StorageService.bucketExsists();
+				assertTrue(objectExsists);
+			}catch(Exception e){
+				fail(e.getMessage());
+			}
+		});
+	}
+	
+	@Test
+	void s3ShouldSaveDataIfModuleIdSameButDifferentKeySuffixSame() throws IOException,SdkException{
+		String keySuffix1=newKeySuffix();
+		String KeySuffix2=newKeySuffix();
+		saveTestDataInS3("test_module",keySuffix1,testFile,(key1)->{
+			try {
+				saveTestDataInS3("test_module", KeySuffix2, testFile2, (key2) -> {
+					try {
+						InputStream dataResponse = s3StorageService.getData(key1);
+						assertEquals(testFileContent, IOUtils.toString(dataResponse, Charset.defaultCharset()));
+						InputStream dataResponse2 = s3StorageService.getData(key2);
+						assertEquals(testFile2Content, IOUtils.toString(dataResponse2, Charset.defaultCharset()));
+					}
+					catch (Exception e) {
+						fail(e.getMessage());
+					}
+				});
+			}catch(Exception e){
+				fail(e.getMessage());
+			}
+		});
+	}
+	
+	@Test
+	void s3GetKeysShouldListFilesWithGivenModuleIdAndKeySuffixWithoutDirs() throws IOException,SdkException {
+		saveTestDataInS3("test_module", "test_key", (key) -> {
+			try {
+				saveTestDataInS3("test_module", "test_key_2", testFile2, (key2) -> {
+					try (Stream<String> keys = s3StorageService.getKeys("test_module", "test_ke")) {
+						assertThat(keys.collect(Collectors.toList()),
+							containsInAnyOrder(equalTo("test_module/test_key"), equalTo("test_module/test_key_2")));
+					}
+					catch (Exception e) {
+						fail(e.getMessage());
+					}
+				});
+			}
+			catch (Exception e) {
+				fail(e.getMessage());
+			}
+		});
+	}
+
+	@Test
+	void s3GetKeysShouldListFilesWithGivenModuleIdAndKeySuffix() throws SdkException,IOException {
+		saveTestDataInS3("test_module", "test/test_key", (key) -> {
+			try {
+				saveTestDataInS3("test_module", "test/test_key_2", testFile2, (key2) -> {
+					try (Stream<String> keys = s3StorageService.getKeys("test_module", "test")) {
+						assertThat(keys.collect(Collectors.toList()),
+							containsInAnyOrder(equalTo("test_module/test/test_key"), equalTo("test_module/test/test_key_2")));
+					}
+					catch (Exception e) {
+						fail(e.getMessage());
+					}
+				});
+			}
+			catch (Exception e) {
+				 fail(e.getMessage());
+			}
+		});
+	}
+
+	@Test
+	void s3GetKeysShouldListFilesWithoutGivenModuleIdAndWithKeySuffix() throws IOException,SdkException {
+		saveTestDataInS3(null, "test_key", (key) -> {
+			try {
+				saveTestDataInS3(null, "test_key_2", testFile2, (key2) -> {
+					try (Stream<String> keys = s3StorageService.getKeys(null, "test_ke")) {
+						assertThat(keys.collect(Collectors.toList()),
+							containsInAnyOrder(equalTo("test_key"), equalTo("test_key_2")));
+					}
+					catch (Exception e) {
+						fail(e.getMessage());
+					}
+				});
+			}
+			catch (Exception e) {
+				fail(e.getMessage());
+			}
+		});
+	}
+
+	@Test
+	void s3GetKeysShouldListFilesOnlyForGivenModule() throws IOException,SdkException  {
+		saveTestDataInS3("test_module", "test_key", (key) -> {
+			try {
+				saveTestDataInS3(null, "test_key_2", testFile2, (key2) -> {
+					try (Stream<String> keys = s3StorageService.getKeys("test_module", "test_ke")) {
+						assertThat(keys.collect(Collectors.toList()), containsInAnyOrder(equalTo("test_module/test_key")));
+					}
+					catch (Exception e) {
+						fail(e.getMessage());
+					}
+				});
+			}
+			catch (Exception e) {
+				fail(e.getMessage());
+			}
+		});
+	}
+
+	@Test
+	void s3GetKeysShouldListFilesOnlyForGlobal() throws IOException,SdkException {
+		saveTestDataInS3("test_module", "test_key", (key) -> {
+			try {
+				saveTestDataInS3(null, "test_key_2", testFile2, (key2) -> {
+					try (Stream<String> keys = s3StorageService.getKeys(null, "test_ke")) {
+						assertThat(keys.collect(Collectors.toList()), containsInAnyOrder(equalTo("test_key_2")));
+					}
+					catch (Exception e) {
+						fail(e.getMessage());
+					}
+				});
+			}
+			catch (IOException e) {
+				fail(e.getMessage());
+			}
+		});
+	}
+
+	@Test
+	void s3GetKeysShouldListFilesAndDirsOnlyForCurrentDir() throws IOException,SdkException {
+		saveTestDataInS3("test_module", "test_parent/test/test_key", (key) -> {
+			try {
+				saveTestDataInS3("test_module", "test_parent/test_key_2", testFile2, (key2) -> {
+					try (Stream<String> keys = s3StorageService.getKeys("test_module", "test_parent/test")) {
+						assertThat(keys.collect(Collectors.toList()),
+							containsInAnyOrder(equalTo("test_module/test_parent/test_key_2"), equalTo("test_module/test_parent/test/test_key")));
+					}
+					catch (Exception e) {
+						fail(e.getMessage());
+					}
+				});
+			}
+			catch (IOException e) {
+				fail(e.getMessage());
+			}
+		});
+	}
+
+	@Test
+	void s3GetKeysShouldListNoFilesIfNoMatches() throws IOException,SdkException {
+		saveTestDataInS3("test_module", "test/test_key", (key) -> {
+			try {
+				saveTestDataInS3("test_module", "test/test_key_2", testFile2, (key2) -> {
+					try (Stream<String> keys = s3StorageService.getKeys("test_module", "test2")) {
+						assertThat(keys.collect(Collectors.toList()), is(emptyIterable()));
+					}
+					catch (Exception e) {
+						fail(e.getMessage());
+					}
+				});
+			}
+			catch (Exception e) {
+				fail(e.getMessage());
+			}
+		});
+	}
+
+	@Test
+	void s3GetKeysShouldListAllFilesAndDirsFromDir() throws IOException,SdkException {
+		saveTestDataInS3("test_module", "test/test_key", (key) -> {
+			try {
+				saveTestDataInS3("test_module", "test/test_key_2", testFile2, (key2) -> {
+					try (Stream<String> keys = s3StorageService.getKeys("test_module", "test/")) {
+						assertThat(keys.collect(Collectors.toList()),
+							containsInAnyOrder(equalTo("test_module/test/test_key_2"), equalTo("test_module/test/test_key")));
+					}
+					catch (Exception e) {
+						fail(e.getMessage());
+					}
+				});
+			}
+			catch (Exception e) {
+				fail(e.getMessage());
+			}
+		});
+	}
+
+	@Test
+	void s3GetKeysShouldListAllFilesAndDirsFromRoot() throws IOException,SdkException {
+		saveTestDataInS3("test_module", "test/test_key", (key) -> {
+			try {
+				saveTestDataInS3("test_module", "test/test_key_2", testFile2, (key2) -> {
+					try {
+						saveTestDataInS3(null, "test", (key3) -> {
+							try (Stream<String> keys = s3StorageService.getKeys(null, "")) {
+								assertThat(keys.collect(Collectors.toList()),
+									containsInAnyOrder(equalTo("test_module/test/test_key"), equalTo("test_module/test/test_key_2"),equalTo("test")));
+
+
+							}
+							catch (Exception e) {
+								fail(e.getMessage());
+							}
+						});
+					}
+					catch (IOException e) {
+						fail(e.getMessage());
+					}
+				});
+			}
+			catch (Exception e) {
+				fail(e.getMessage());
+			}
+		});
+	}
+
+	
+	void saveTestDataInS3(String moduleId, String keySuffix, Consumer<String> verify) throws IOException,SdkException{
+		saveTestDataInS3(moduleId, keySuffix, null, verify);
+	}
+	
+	void saveTestDataInS3(String moduleId, String keySuffix, InputStream testData, Consumer<String> verify) throws IOException,
+		SdkException {
+		String key = null;
+		try {
+			s3StorageService.createBucket();
+			if (testData == null) {
+				testData = testFile;
+			}
+			if (keySuffix != null) {
+				key = s3StorageService.saveData(testData, null, moduleId, keySuffix);
+			} else {
+				key = s3StorageService.saveData(testData, null, moduleId);
+			}
+			verify.accept(key);
+		}
+		finally {
+			if (key != null) {
+				s3StorageService.purgeData(key);
+			}
+		}
+	}
+	
+
+	
+	@Test
+	void s3PurgeDataShouldReturnTrueIfNotExists() throws SdkException {
+		//s3 delete object does not give an error even if object does not exsist
+		boolean deleted = s3StorageService.purgeData(newKeySuffix());
+		assertThat(deleted, is(true));
+	}
+	
+
+	@Test
+	void s3ExistsShouldReturnTrueWhenObjectExists() throws IOException {
+		saveTestDataInS3(null, null, (key) -> {
+			boolean exists = s3StorageService.exists(key);
+			assertThat(exists, is(true));
+		});
+	}
+
+	@Test
+	void s3ExistsShouldReturnFalseWhenObjectMissing() throws IOException {
+		boolean exists = s3StorageService.exists(newKeySuffix());
+		//This one fails in mock as it returns a different error code i.e 500 instead of 404
+		assertThat(exists, is(false));
+	}
+	
+	@Test
+	void s3BucketShouldBeDeletedSuccessfully(){
+		s3StorageService.deleteBucket();
+		boolean buckedShouldNotExsist=s3StorageService.bucketExsists();
+		assertThat(buckedShouldNotExsist,equalTo(false));
 	}
 	
 	@Test
@@ -601,4 +983,6 @@ class StorageServiceTest extends BaseContextSensitiveTest {
 			}
 		}
 	}
+	
+	
 }

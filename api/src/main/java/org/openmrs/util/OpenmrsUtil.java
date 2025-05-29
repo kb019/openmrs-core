@@ -965,6 +965,22 @@ public class OpenmrsUtil {
 		return getApplicationDataDirectoryAsFile().toString();
 	}
 	
+	public static String getS3ApplicationBucket(){
+         String bucket="openmrs-s3-application-directory";
+		 String systemProperty = System.getProperty(OpenmrsConstants.KEY_OPENMRS_S3_BUCKET);
+		 
+		 if(StringUtils.isNotBlank(systemProperty)){
+			 bucket=systemProperty;
+		 }else{
+			 String runtimeProperty = Context.getRuntimeProperties()
+				 .getProperty(OpenmrsConstants.S3_BUCKET_RUNTIME_PROPERTY, null);
+			 if (StringUtils.isNotBlank(runtimeProperty)) {
+				 bucket = runtimeProperty;
+			 }
+		 }
+		 return bucket;
+	}
+	
 	public static File getApplicationDataDirectoryAsFile() {
 		String filepath = null;
 		final String openmrsDir = "OpenMRS";

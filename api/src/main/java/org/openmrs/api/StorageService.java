@@ -18,6 +18,7 @@ import java.util.stream.Stream;
 import org.openmrs.api.storage.ObjectMetadata;
 import org.openmrs.api.stream.StreamDataWriter;
 import org.springframework.stereotype.Service;
+import software.amazon.awssdk.core.exception.SdkException;
 
 /**
  * Storage service to persist data that does not fit well in DB.
@@ -40,7 +41,7 @@ public interface StorageService extends OpenmrsService {
 	 * @return data
 	 * @throws IOException wrong key or IO error
 	 */
-	InputStream getData(String key) throws IOException;
+	InputStream getData(String key) throws IOException, SdkException;
 
 
 	/**
@@ -59,7 +60,7 @@ public interface StorageService extends OpenmrsService {
 	 * @return the metadata
 	 * @throws IOException wrong key or IO error
 	 */
-	ObjectMetadata getMetadata(String key) throws IOException;
+	ObjectMetadata getMetadata(String key) throws IOException,SdkException;
 	
 	/**
 	 * Returns keys starting with the given prefix (the order depends on the implementation).
@@ -71,7 +72,7 @@ public interface StorageService extends OpenmrsService {
 	 * @return stream of keys
 	 * @throws IOException IO error
 	 */
-	Stream<String> getKeys(String moduleIdOrGroup, String keyPrefix) throws IOException;
+	Stream<String> getKeys(String moduleIdOrGroup, String keyPrefix) throws IOException,SdkException;
 	
 	/**
 	 * Saves the given InputStream with auto-generated key (should be preferred to avoid key collision and use 
@@ -83,7 +84,7 @@ public interface StorageService extends OpenmrsService {
 	 * @return unique key
 	 * @throws IOException IO error
 	 */
-	String saveData(InputStream inputStream, ObjectMetadata metadata, String moduleIdOrGroup) throws IOException;
+	String saveData(InputStream inputStream, ObjectMetadata metadata, String moduleIdOrGroup) throws IOException,SdkException;
 	
 	/**
 	 * Saves the given InputStream as a temporary file. Temporary files are kept, if possible, in local
@@ -123,7 +124,7 @@ public interface StorageService extends OpenmrsService {
 	 * @throws IOException if key exists or IO error
 	 */
 	String saveData(InputStream inputStream, ObjectMetadata metadata, String moduleIdOrGroup,
-					String keySuffix) throws IOException;
+					String keySuffix) throws IOException,SdkException;
 	
 	/**
 	 * Saves the data under the given key suffix.
@@ -141,7 +142,7 @@ public interface StorageService extends OpenmrsService {
 	 * @throws IOException if key exists or IO error
 	 */
 	String saveData(StreamDataWriter writer, ObjectMetadata metadata, String moduleIdOrGroup, String keySuffix) 
-		throws IOException;
+		throws IOException,SdkException;
 
 	/**
 	 * Saves the data with auto-generated key (should be preferred to avoid key collision and use the best key 
@@ -155,7 +156,7 @@ public interface StorageService extends OpenmrsService {
 	 * @return unique key
 	 * @throws IOException if key exists or IO error
 	 */
-	String saveData(StreamDataWriter writer, ObjectMetadata metadata, String moduleIdOrGroup) throws IOException;
+	String saveData(StreamDataWriter writer, ObjectMetadata metadata, String moduleIdOrGroup) throws IOException,SdkException;
 
 	/**
 	 * Marks data for deletion. The key may be freed up after some period.
@@ -164,7 +165,7 @@ public interface StorageService extends OpenmrsService {
 	 * @return true if marked for deletion, false if not exists
 	 * @throws IOException IO error
 	 */
-	boolean purgeData(String key) throws IOException;
+	boolean purgeData(String key) throws IOException,SdkException;
 	
 	/**
 	 * Returns true if object with the given key exists.

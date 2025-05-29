@@ -56,4 +56,5 @@
 			</list>
 		</property>
 	</bean>
+	<bean class="org.openmrs.api.StorageConfigTest"></bean>
 </beans>
