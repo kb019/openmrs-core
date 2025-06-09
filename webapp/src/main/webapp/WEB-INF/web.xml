@@ -134,7 +134,7 @@
 	      hibernate filter (to help with lazy loading) -->
 	<filter>
         <filter-name>HibernateFilter</filter-name>
-        <filter-class>org.springframework.orm.hibernate5.support.OpenSessionInViewFilter</filter-class>
+        <filter-class>org.openmrs.web.filter.OpenmrsOpenSessionInViewFilter</filter-class>
     </filter>
     <filter-mapping>
 		<filter-name>HibernateFilter</filter-name> 
@@ -155,7 +155,7 @@
 		<filter-name>CookieClearingFilter</filter-name>
 		<url-pattern>/*</url-pattern>
 	</filter-mapping>
-	
+<!--	-->
 	<filter>
 		<filter-name>OpenmrsFilter</filter-name> 
 		<filter-class>org.openmrs.web.filter.OpenmrsFilter</filter-class> 
@@ -168,7 +168,7 @@
 		<dispatcher>REQUEST</dispatcher>
 		<dispatcher>INCLUDE</dispatcher>
 	</filter-mapping>
-	
+<!--	-->
 	<filter>
         <filter-name>CSRFGuard</filter-name>
         <filter-class>org.owasp.csrfguard.CsrfGuardFilter</filter-class>
@@ -178,7 +178,7 @@
         <!-- Filter any URL using CSRFGuard -->
         <url-pattern>/*</url-pattern>
     </filter-mapping>
-	
+<!--	-->
 	<filter>
 		<filter-name>ModuleFilter</filter-name> 
 		<filter-class>org.openmrs.module.web.filter.ModuleFilter</filter-class> 
@@ -265,6 +265,16 @@
 	    </init-param>
 		<!-- Don't use "load-on-startup" in case initial setup wizard is needed -->
 	</servlet>
+	
+	<servlet>
+		<servlet-name>openmrs_service_health_indicator</servlet-name>
+		<servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>
+		<init-param>
+			<param-name>contextConfigLocation</param-name>
+			<param-value>classpath:openmrs-probes.xml</param-value>
+		</init-param>
+		<load-on-startup>0</load-on-startup>
+	</servlet>
 
 	<servlet>
 		<servlet-name>openmrs_static_content</servlet-name>
@@ -311,6 +321,12 @@
 	<servlet-mapping>
  		<servlet-name>openmrs</servlet-name>
  		<url-pattern>/ws/*</url-pattern>
+	</servlet-mapping>
+
+	<servlet-mapping>
+		<servlet-name>openmrs_service_health_indicator</servlet-name>
+		<url-pattern>/liveness</url-pattern>
+		<url-pattern>/readiness</url-pattern>
 	</servlet-mapping>
 	
 	<servlet-mapping>
