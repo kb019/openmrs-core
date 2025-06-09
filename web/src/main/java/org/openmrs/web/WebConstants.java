@@ -114,4 +114,14 @@ public class WebConstants {
 	 * Session attribute name for the referer url
 	 */
 	public static final String REFERER_URL = "referer_url";
+	
+	/**
+	 * The url to check if openmrs is started   
+	 */
+	public static final String LIVENESS_URL = "liveness";
+	
+	/**
+	 * The url to check if db updates are completed and openmrs is successfully running  
+	 */
+	public static final String READINESS_URL = "readiness";
 }

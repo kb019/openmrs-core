@@ -113,7 +113,7 @@ public abstract class StartupFilter implements Filter {
 		if (((HttpServletRequest)request).getServletPath().equals("/health/started")) {
 			((HttpServletResponse) response).setStatus(Listener.isOpenmrsStarted() ? HttpServletResponse.SC_OK : HttpServletResponse.SC_SERVICE_UNAVAILABLE);
 		}
-		else if (skipFilter((HttpServletRequest) request)) {
+		else if (skipFilter((HttpServletRequest) request) || ((HttpServletRequest) request).getServletPath().equals("/" + WebConstants.LIVENESS_URL) || ((HttpServletRequest) request).getServletPath().equals("/" + WebConstants.READINESS_URL)) {
 			chain.doFilter(request, response);
 		} else {
 			
