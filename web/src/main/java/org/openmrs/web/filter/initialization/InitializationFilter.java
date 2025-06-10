@@ -1052,7 +1052,7 @@ public class InitializationFilter extends StartupFilter {
 	/**
 	 * @return true if installation has been started
 	 */
-	protected static boolean isInstallationStarted() {
+	public static boolean isInstallationStarted() {
 		return isInstallationStarted;
 	}
 	
