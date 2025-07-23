@@ -9,6 +9,7 @@
  */
 package org.openmrs.api.db.hibernate;
 
+import javax.annotation.PostConstruct;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -28,6 +29,10 @@ import org.hibernate.boot.Metadata;
 import org.hibernate.engine.spi.SessionFactoryImplementor;
 import org.hibernate.integrator.spi.Integrator;
 import org.hibernate.service.spi.SessionFactoryServiceRegistry;
+import org.springframework.context.annotation.Primary;
+import org.springframework.core.Ordered;
+import org.springframework.core.annotation.Order;
+import org.springframework.lang.Nullable;
 import org.openmrs.api.cache.CacheConfig;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.Module;
@@ -37,9 +42,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MarkerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.Resource;
 import org.springframework.orm.hibernate5.LocalSessionFactoryBean;
+import org.springframework.stereotype.Component;
 
+@Component("sessionFactory")
 public class HibernateSessionFactoryBean extends LocalSessionFactoryBean implements Integrator {
 	
 	private static final Logger log = LoggerFactory.getLogger(HibernateSessionFactoryBean.class);
@@ -70,6 +79,20 @@ public class HibernateSessionFactoryBean extends LocalSessionFactoryBean impleme
 	@Autowired
 	private CacheConfig cacheConfig;
 	
+	@Autowired
+	@Qualifier("mappingJarResources")
+	@Nullable
+	private Resource[] hibernateMappingJarLocations;
+	
+	@Value("classpath:hibernate.cfg.xml")
+	Resource hibernateConfigFile;
+	
+	@PostConstruct
+	private void init(){
+		packagesToScan.add("org.openmrs");
+		setConfigLocation(hibernateConfigFile);
+		setMappingJarLocations(hibernateMappingJarLocations);
+	}
 	/**
 	 * Collect the mapping resources for future use because the mappingResources object is defined
 	 * as 'private' instead of 'protected'
