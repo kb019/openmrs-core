@@ -49,6 +49,7 @@ import org.openmrs.util.OpenmrsUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.support.AbstractRefreshableApplicationContext;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
 
 /**
  * Utility methods for working and manipulating modules
@@ -870,6 +871,8 @@ public class ModuleUtil {
 		
 		ServiceContext.getInstance().startRefreshingContext();
 		try {
+			ClassPathXmlApplicationContext parentApplicationContext= (ClassPathXmlApplicationContext) ctx.getParent();
+			parentApplicationContext.refresh();
 			ctx.refresh();
 		}
 		finally {

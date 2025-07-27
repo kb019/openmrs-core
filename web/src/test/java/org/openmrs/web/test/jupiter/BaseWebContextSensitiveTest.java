@@ -11,6 +11,7 @@ package org.openmrs.web.test.jupiter;
 
 import org.openmrs.test.jupiter.BaseContextSensitiveTest;
 import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.ContextHierarchy;
 import org.springframework.test.context.web.WebAppConfiguration;
 
 /**
@@ -22,6 +23,10 @@ import org.springframework.test.context.web.WebAppConfiguration;
  * right type of controller, etc.
  */
 @WebAppConfiguration	
-@ContextConfiguration(locations = { "classpath*:openmrs-servlet.xml", "classpath*:AltAuthSchemeTestingApplicationContext.xml" })
+@ContextHierarchy({
+	@ContextConfiguration(locations={"classpath:applicationContext-parent.xml"}),
+	@ContextConfiguration(locations = {"classpath:applicationContext-service.xml",
+		"classpath*:moduleApplicationContext.xml", "classpath*:TestingApplicationContext.xml", "classpath*:openmrs-servlet.xml", "classpath*:AltAuthSchemeTestingApplicationContext.xml" })
+})
 public abstract class BaseWebContextSensitiveTest extends BaseContextSensitiveTest {
 }

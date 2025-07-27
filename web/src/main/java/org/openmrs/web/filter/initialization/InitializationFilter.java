@@ -38,6 +38,7 @@ import java.util.concurrent.Future;
 import java.util.zip.ZipInputStream;
 import javax.servlet.FilterChain;
 import javax.servlet.FilterConfig;
+import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
@@ -1711,9 +1712,9 @@ public class InitializationFilter extends StartupFilter {
 						// start spring
 						// after this point, all errors need to also call: contextLoader.closeWebApplicationContext(event.getServletContext())
 						// logic copied from org.springframework.web.context.ContextLoaderListener
-						ContextLoader contextLoader = new ContextLoader();
-						contextLoader.initWebApplicationContext(filterConfig.getServletContext());
-						
+						Listener listener=new Listener();
+						listener.generateApplicationContext(filterConfig.getServletContext());
+
 						// output properties to the openmrs runtime properties file so that this wizard is not run again
 						FileOutputStream fos = null;
 						try {
@@ -1768,7 +1769,7 @@ public class InitializationFilter extends StartupFilter {
 								log.warn("Implementation ID could not be set.", e);
 								Context.shutdown();
 								WebModuleUtil.shutdownModules(filterConfig.getServletContext());
-								contextLoader.closeWebApplicationContext(filterConfig.getServletContext());
+								listener.closeWebApplicationContext(filterConfig.getServletContext());
 								return;
 							}
 							finally {
@@ -1813,7 +1814,7 @@ public class InitializationFilter extends StartupFilter {
 						catch (Exception e) {
 							Context.shutdown();
 							WebModuleUtil.shutdownModules(filterConfig.getServletContext());
-							contextLoader.closeWebApplicationContext(filterConfig.getServletContext());
+							listener.closeWebApplicationContext(filterConfig.getServletContext());
 							reportError(ErrorMessageConstants.ERROR_COMPLETE_STARTUP, DEFAULT_PAGE, e.getMessage());
 							log.warn("Unable to complete the startup.", e);
 							return;

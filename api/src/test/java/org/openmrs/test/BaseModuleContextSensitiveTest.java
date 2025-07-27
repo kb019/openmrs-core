@@ -10,6 +10,7 @@
 package org.openmrs.test;
 
 import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.ContextHierarchy;
 
 /**
  * Modules using the unit test framework should use this class instead of the general
@@ -24,8 +25,11 @@ import org.springframework.test.context.ContextConfiguration;
  * To migrate your tests follow <a href="https://wiki.openmrs.org/display/docs/How+to+migrate+to+JUnit+5">How to migrate to JUnit 5</a>.
  * The JUnit 5 version of the class is {@link org.openmrs.test.jupiter.BaseModuleContextSensitiveTest}.<p>
  */
-@ContextConfiguration(locations = { "classpath:applicationContext-service.xml", "classpath*:TestingApplicationContext.xml",
-        "classpath*:moduleApplicationContext.xml" }, inheritLocations = false)
+@ContextHierarchy({
+	@ContextConfiguration(locations = {"classpath:applicationContext-parent.xml"}),
+	@ContextConfiguration(locations = { "classpath:applicationContext-service.xml", "classpath*:TestingApplicationContext.xml",
+		"classpath*:moduleApplicationContext.xml" }, inheritLocations = false)
+})
 @Deprecated
 public abstract class BaseModuleContextSensitiveTest extends BaseContextSensitiveTest {
 

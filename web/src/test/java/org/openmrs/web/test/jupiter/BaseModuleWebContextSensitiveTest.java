@@ -12,6 +12,7 @@ package org.openmrs.web.test.jupiter;
 import org.openmrs.test.jupiter.BaseModuleContextSensitiveTest;
 import org.openmrs.web.test.BaseWebContextSensitiveTest;
 import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.ContextHierarchy;
 import org.springframework.test.context.web.WebAppConfiguration;
 
 /**
@@ -24,6 +25,11 @@ import org.springframework.test.context.web.WebAppConfiguration;
  * module services are loaded from the system classloader)
  */
 @WebAppConfiguration
-@ContextConfiguration(locations = { "classpath*:openmrs-servlet.xml", "classpath*:webModuleApplicationContext.xml" }, inheritLocations = true)
+@ContextHierarchy({
+	@ContextConfiguration(locations = {"classpath:applicationContext-parent.xml"}),
+	@ContextConfiguration(locations = {"classpath:applicationContext-service.xml",
+		"classpath*:TestingApplicationContext.xml",
+		"classpath*:moduleApplicationContext.xml", "classpath*:openmrs-servlet.xml", "classpath*:webModuleApplicationContext.xml" })
+})
 public abstract class BaseModuleWebContextSensitiveTest extends BaseModuleContextSensitiveTest {
 }

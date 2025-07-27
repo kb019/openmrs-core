@@ -470,14 +470,14 @@ public class UpdateFilter extends StartupFilter {
 		// start spring
 		// after this point, all errors need to also call: contextLoader.closeWebApplicationContext(event.getServletContext())
 		// logic copied from org.springframework.web.context.ContextLoaderListener
-		ContextLoader contextLoader = new ContextLoader();
-		contextLoader.initWebApplicationContext(servletContext);
+		Listener listener=new Listener();
+		listener.generateApplicationContext(servletContext);
 		
 		try {
 			WebDaemon.startOpenmrs(servletContext);
 		}
 		catch (Exception exception) {
-			contextLoader.closeWebApplicationContext(servletContext);
+			listener.closeWebApplicationContext(servletContext);
 			throw exception;
 		}
 	}

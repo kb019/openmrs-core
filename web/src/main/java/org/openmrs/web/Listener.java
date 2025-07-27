@@ -33,6 +33,8 @@ import org.owasp.csrfguard.CsrfGuardServletContextListener;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MarkerFactory;
 import org.springframework.beans.factory.BeanCreationException;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.util.StringUtils;
 import org.springframework.web.context.ContextLoader;
 import org.springframework.web.context.WebApplicationContext;
@@ -241,13 +243,7 @@ public final class Listener extends ContextLoader implements ServletContextListe
 				// found but before the database update is done
 				copyCustomizationIntoWebapp(servletContext, props);
 				
-				/**
-				 * This logic is from ContextLoader.initWebApplicationContext. Copied here instead
-				 * of calling that so that the context is not cached and hence not garbage collected
-				 */
-				XmlWebApplicationContext context = (XmlWebApplicationContext) createWebApplicationContext(servletContext);
-				configureAndRefreshWebApplicationContext(context, servletContext);
-				servletContext.setAttribute(WebApplicationContext.ROOT_WEB_APPLICATION_CONTEXT_ATTRIBUTE, context);
+				generateApplicationContext(servletContext);
 				
 				WebDaemon.startOpenmrs(event.getServletContext());
 			} else {
@@ -782,6 +778,24 @@ public final class Listener extends ContextLoader implements ServletContextListe
 		}
 		
 		return null;
+	}
+	
+	
+	public void generateApplicationContext(ServletContext servletContext){
+		/**
+		 * This logic is from ContextLoader.initWebApplicationContext. Copied here instead
+		 * of calling that so that the context is not cached and hence not garbage collected
+		 */
+		XmlWebApplicationContext context = (XmlWebApplicationContext) createWebApplicationContext(servletContext);
+		context.setParent(this.loadParentContext(servletContext));
+		configureAndRefreshWebApplicationContext(context, servletContext);
+		servletContext.setAttribute(WebApplicationContext.ROOT_WEB_APPLICATION_CONTEXT_ATTRIBUTE, context);
+	}
+	
+	@Override
+	public ApplicationContext loadParentContext(ServletContext servletContext){
+		ApplicationContext applicationContext = new ClassPathXmlApplicationContext("applicationContext-parent.xml");
+		return applicationContext;
 	}
 	
 }

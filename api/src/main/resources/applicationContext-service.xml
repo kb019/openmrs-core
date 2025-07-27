@@ -13,15 +13,15 @@
 
 <!-- Application context definition for OpenMRS business services. -->
 <beans xmlns="http://www.springframework.org/schema/beans"
-	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	   xmlns:p="http://www.springframework.org/schema/p"
-	   xmlns:context="http://www.springframework.org/schema/context"
-	   xmlns:cache="http://www.springframework.org/schema/cache"
-	   xmlns:jee="http://www.springframework.org/schema/jee"
-	   xmlns:tx="http://www.springframework.org/schema/tx"
-	   xmlns:aop="http://www.springframework.org/schema/aop"
-	   xmlns:util="http://www.springframework.org/schema/util"
-	   xsi:schemaLocation="http://www.springframework.org/schema/beans
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:p="http://www.springframework.org/schema/p"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:cache="http://www.springframework.org/schema/cache"
+       xmlns:jee="http://www.springframework.org/schema/jee"
+       xmlns:tx="http://www.springframework.org/schema/tx"
+       xmlns:aop="http://www.springframework.org/schema/aop"
+       xmlns:util="http://www.springframework.org/schema/util"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
        		http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
 			http://www.springframework.org/schema/context
 			http://www.springframework.org/schema/context/spring-context-3.0.xsd
@@ -134,88 +134,138 @@
 	<!--  **************************  DATA ACCESS OBJECTS  *************************  -->
 
 	<bean id="contextDAO" class="org.openmrs.api.db.hibernate.HibernateContextDAO">
-		<property name="sessionFactory" ref="sessionFactory"/>
+		<property name="sessionFactory">
+			<ref parent="sessionFactory"/>
+		</property>
 		<property name="userDAO" ref="userDAO"/>
 	</bean>
 
 	<bean id="patientDAO" class="org.openmrs.api.db.hibernate.HibernatePatientDAO">
-		<property name="sessionFactory" ref="sessionFactory"/>
+		<property name="sessionFactory">
+			<ref parent="sessionFactory"/>
+		</property>
 		<property name="searchSessionFactory" ref="searchSessionFactory"/>
 	</bean>
 	<bean id="personDAO" class="org.openmrs.api.db.hibernate.HibernatePersonDAO">
-		<property name="sessionFactory" ref="sessionFactory"/>
+		<property name="sessionFactory" >
+			<ref parent="sessionFactory"/>
+		</property>
 		<property name="searchSessionFactory" ref="searchSessionFactory"/>
 	</bean>
 	<bean id="conceptDAO" class="org.openmrs.api.db.hibernate.HibernateConceptDAO">
-		<property name="sessionFactory" ref="sessionFactory"/>
+		<property name="sessionFactory">
+			<ref parent="sessionFactory"/>
+		</property>
 		<property name="searchSessionFactory" ref="searchSessionFactory"/>
 	</bean>
 	<bean id="userDAO" class="org.openmrs.api.db.hibernate.HibernateUserDAO">
-		<property name="sessionFactory" ref="sessionFactory"/>
+		<property name="sessionFactory" >
+			<ref parent="sessionFactory"/>
+		</property>
 	</bean>
 	<bean id="obsDAO" class="org.openmrs.api.db.hibernate.HibernateObsDAO">
-		<property name="sessionFactory" ref="sessionFactory"/>
+		<property name="sessionFactory">
+			<ref parent="sessionFactory"/>
+		</property>
 	</bean>
 	<bean id="encounterDAO" class="org.openmrs.api.db.hibernate.HibernateEncounterDAO">
-		<property name="sessionFactory" ref="sessionFactory"/>
+		<property name="sessionFactory">
+			<ref parent="sessionFactory"/>
+		</property>
 	</bean>
 	<bean id="locationDAO" class="org.openmrs.api.db.hibernate.HibernateLocationDAO">
-		<property name="sessionFactory" ref="sessionFactory"/>
+		<property name="sessionFactory">
+			<ref parent="sessionFactory"/>
+		</property>
 	</bean>
 	<bean id="orderDAO" class="org.openmrs.api.db.hibernate.HibernateOrderDAO">
-		<property name="sessionFactory" ref="sessionFactory"/>
+		<property name="sessionFactory">
+			<ref parent="sessionFactory"/>
+		</property>
 	</bean>
 	<bean id="orderSetDAO" class="org.openmrs.api.db.hibernate.HibernateOrderSetDAO">
-		<property name="sessionFactory" ref="sessionFactory"/>
+		<property name="sessionFactory">
+			<ref parent="sessionFactory"/>
+		</property>
 	</bean>
 	<bean id="formDAO" class="org.openmrs.api.db.hibernate.HibernateFormDAO">
-		<property name="sessionFactory" ref="sessionFactory"/>
+		<property name="sessionFactory">
+			<ref parent="sessionFactory"/>
+		</property>
 	</bean>
 	<bean id="adminDAO" class="org.openmrs.api.db.hibernate.HibernateAdministrationDAO">
-		<property name="sessionFactory" ref="sessionFactory"/>
+		<property name="sessionFactory">
+			<ref parent="sessionFactory"/>
+		</property>
 	</bean>
 	<bean id="programWorkflowDAO" class="org.openmrs.api.db.hibernate.HibernateProgramWorkflowDAO">
-		<property name="sessionFactory" ref="sessionFactory"/>
+		<property name="sessionFactory">
+			<ref parent="sessionFactory"/>
+		</property>
 	</bean>
 	<bean id="templateDAO" class="org.openmrs.api.db.hibernate.HibernateTemplateDAO">
-		<property name="sessionFactory" ref="sessionFactory"/>
+		<property name="sessionFactory">
+			<ref parent="sessionFactory"/>
+		</property>
 	</bean>
 	<bean id="cohortDAO" class="org.openmrs.api.db.hibernate.HibernateCohortDAO">
-		<property name="sessionFactory" ref="sessionFactory"/>
+		<property name="sessionFactory">
+			<ref parent="sessionFactory"/>
+		</property>
 	</bean>
 	<bean id="serializedObjectDAO" class="org.openmrs.api.db.hibernate.HibernateSerializedObjectDAO"
-		  factory-method="getInstance">
-		<property name="sessionFactory" ref="sessionFactory"/>
+	      factory-method="getInstance">
+		<property name="sessionFactory">
+			<ref parent="sessionFactory"/>
+		</property>
 		<property name="supportedTypes">
 			<list/>
 		</property>
 	</bean>
 	<bean id="datatypeDAO" class="org.openmrs.api.db.hibernate.HibernateDatatypeDAO">
-		<property name="sessionFactory" ref="sessionFactory"/>
+		<property name="sessionFactory">
+			<ref parent="sessionFactory"/>
+		</property>
 	</bean>
 	<bean id="schedulerDAO" class="org.openmrs.scheduler.db.hibernate.HibernateSchedulerDAO">
-		<property name="sessionFactory" ref="sessionFactory"/>
+		<property name="sessionFactory">
+			<ref parent="sessionFactory"/>
+		</property>
 	</bean>
 	<bean id="alertDAO" class="org.openmrs.notification.db.hibernate.HibernateAlertDAO">
-		<property name="sessionFactory" ref="sessionFactory"/>
+		<property name="sessionFactory">
+			<ref parent="sessionFactory"/>
+		</property>
 	</bean>
 	<bean id="hL7DAO" class="org.openmrs.hl7.db.hibernate.HibernateHL7DAO">
-		<property name="sessionFactory" ref="sessionFactory"/>
+		<property name="sessionFactory">
+			<ref parent="sessionFactory"/>
+		</property>
 	</bean>
 	<bean id="visitDAO" class="org.openmrs.api.db.hibernate.HibernateVisitDAO">
-		<property name="sessionFactory" ref="sessionFactory"/>
+		<property name="sessionFactory">
+			<ref parent="sessionFactory"/>
+		</property>
 	</bean>
 	<bean id="providerDAO" class="org.openmrs.api.db.hibernate.HibernateProviderDAO">
-		<property name="sessionFactory" ref="sessionFactory"/>
+		<property name="sessionFactory">
+			<ref parent="sessionFactory"/>
+		</property>
 	</bean>
 	<bean id="conditionDAO" class="org.openmrs.api.db.hibernate.HibernateConditionDAO">
-		<property name="sessionFactory" ref="sessionFactory"/>
+		<property name="sessionFactory">
+			<ref parent="sessionFactory"/>
+		</property>
 	</bean>
 	<bean id="diagnosisDAO" class="org.openmrs.api.db.hibernate.HibernateDiagnosisDAO">
-		<property name="sessionFactory" ref="sessionFactory"/>
+		<property name="sessionFactory">
+			<ref parent="sessionFactory"/>
+		</property>
 	</bean>
 	<bean id="medicationDispenseDAO" class="org.openmrs.api.db.hibernate.HibernateMedicationDispenseDAO">
-		<property name="sessionFactory" ref="sessionFactory"/>
+		<property name="sessionFactory">
+			<ref parent="sessionFactory"/>
+		</property>
 	</bean>
 
 	<!--  **************************  SCHEDULER SERVICE  *************************  -->
@@ -543,50 +593,20 @@
 		<ref bean="loggingInterceptor"/>
 		<ref bean="cacheInterceptor"/>
 	</util:list>
-
-
-	<!--  **************************  SESSION FACTORY  *************************  -->
-
-	<util:list id="moduleTestingMappingJarLocations">
-
-	</util:list>
-
-	<bean id="mappingJarResources" class="org.springframework.beans.factory.config.ListFactoryBean"
-		  parent="moduleTestingMappingJarLocations">
-		<property name="sourceList">
-			<list merge="true">
-
-			</list>
-		</property>
-	</bean>
-
-	<!-- will be autowired to the HibernateSessionFactoryBean by type -->
-	<!-- interceptors are used in order of name, this needs to be one of the first and should be since auditable happens to start with 'a' -->
-	<bean id="auditableInterceptor" class="org.openmrs.api.db.hibernate.AuditableInterceptor"/>
-
-	<bean id="sessionFactory" class="org.openmrs.api.db.hibernate.HibernateSessionFactoryBean">
-		<property name="configLocations">
-			<list>
-				<value>classpath:hibernate.cfg.xml</value>
-			</list>
-		</property>
-		<property name="mappingJarLocations" ref="mappingJarResources"/>
-		<property name="packagesToScan">
-			<list>
-				<value>org.openmrs</value>
-			</list>
-		</property>
-		<!--  default properties must be set in the hibernate.default.properties -->
-	</bean>
+	
 
 	<bean id="dbSessionFactory" class="org.openmrs.api.db.hibernate.DbSessionFactory">
-		<constructor-arg name="sessionFactory" ref="sessionFactory"/>
+		<constructor-arg name="sessionFactory">
+			<ref parent="sessionFactory"/>
+		</constructor-arg>
 	</bean>
 
 	<!--  **************************  TRANSACTION MANAGER CONFIGURATION  *************************  -->
 
 	<bean id="transactionManager" class="org.springframework.orm.hibernate5.HibernateTransactionManager">
-		<property name="sessionFactory" ref="sessionFactory"/>
+		<property name="sessionFactory">
+			<ref parent="sessionFactory"/>
+		</property>
 	</bean>
 
 
